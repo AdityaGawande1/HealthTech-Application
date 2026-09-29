@@ -1,41 +1,400 @@
 # MRX HealthTECH
 
-MRX HealthTECH is a database-backed healthcare management prototype built on the existing patient monitoring application. It provides role-separated workspaces for patients, doctors, and administrators, with doctor-entered records and sample demo data.
+**MRX HealthTECH** is a full-stack healthcare management platform designed to connect **patients, doctors, and administrators** through dedicated role-based workspaces.
 
-> Demonstration software only. It is not for emergency care, does not make automated diagnoses, and is not certified for regulated healthcare use.
+The platform combines **doctor discovery, appointment management, patient monitoring, biomarker trends, prescriptions, medical reports, notifications, reviews, favorites, and administrative controls** into a single web application.
 
-## What is new in this version
 
-- Pages now open correctly the first time. Old page data is never shown on a different page, and a page error can be retried without reloading the browser.
-- Creating a new account no longer shows "Validation failed". Blank optional fields are ignored and any problem is explained in plain English.
-- All text is in English, and demo names are Indian names.
+---
 
 ## Features
 
-- **Patient portal:** account registration, doctor discovery with filters and availability, doctor profiles, appointment booking/cancellation/rescheduling, test history and trends, prescriptions, published reports with PDF download, and notifications.
-- **Doctor workspace:** approval-gated sign-in, assigned patient panel, appointment management, biomarker result entry, prescriptions, report drafts/publication, profile and availability management.
-- **Admin workspace:** database-backed system dashboard, patient and user management, doctor creation/approval, appointments, departments, and audit log.
-- **Shared services:** bcrypt password hashing, signed JWT sessions, server-side role checks, Zod API validation, audit events, notifications, SQLite/Prisma relational storage, and OpenAPI UI.
+### Patient Portal
+
+* Secure patient registration and login
+* Doctor discovery and search
+* Doctor profiles with:
+
+  * Specialization
+  * Qualifications
+  * Experience
+  * Consultation fee
+  * Location
+  * Availability
+  * Ratings and reviews
+* Appointment booking
+* Appointment cancellation and rescheduling
+* Doctor favorites
+* Patient profile management
+* Medical history
+* Test and biomarker history
+* Biomarker trend visualization
+* Prescription viewing
+* Published medical reports
+* PDF report download
+* Notifications
+* Doctor reviews and ratings
+
+### Doctor Workspace
+
+* Secure doctor authentication
+* Admin approval before account access
+* Doctor profile management
+* Specialization and qualification information
+* Consultation fee and location
+* Weekly availability management
+* Appointment management
+* Assigned patient management
+* Patient medical history
+* Biomarker/test result entry
+* Test history and trends
+* Prescription creation
+* Medical report creation
+* Report draft and publication workflow
+* Patient-specific clinical records
+
+### Admin Workspace
+
+* System dashboard
+* User management
+* Patient management
+* Doctor management
+* Doctor account creation
+* Doctor approval/rejection
+* User activation/deactivation
+* Appointment management
+* Department management
+* Audit log
+* Platform-level administration
+
+---
+
+## Healthcare Monitoring
+
+The platform supports longitudinal monitoring of patient biomarkers such as:
+
+* HbA1c
+* Fasting Glucose
+* Systolic Blood Pressure
+* Diastolic Blood Pressure
+* Total Cholesterol
+* LDL
+* HDL
+* Hemoglobin
+* Creatinine
+* TSH
+* Vitamin D
+* Other custom biomarkers
+
+Patients and authorized doctors can view historical results and visualize changes through interactive charts.
+
+---
+
+## Appointment System
+
+The appointment system includes:
+
+* Doctor availability
+* 30-minute appointment slots
+* Slot generation based on doctor schedules
+* Appointment booking
+* Appointment confirmation
+* Cancellation
+* Rescheduling
+* Completed appointments
+* Appointment status tracking
+* Conflict prevention
+* Reusable cancelled slots
+* Doctor/patient notifications
+
+Appointment access and modification are controlled by the user's role and relationship to the appointment.
+
+---
+
+## Reports & Prescriptions
+
+Doctors can create clinical records for their assigned patients.
+
+### Prescriptions
+
+* Medicine details
+* Dosage
+* Frequency
+* Duration
+* Instructions
+* Doctor and patient association
+
+### Medical Reports
+
+* Report title
+* Summary
+* Clinical content
+* Doctor notes
+* Draft status
+* Publication workflow
+* Publication timestamp
+* PDF generation
+
+Patients can access reports that have been published for them.
+
+---
+
+## Authentication & Security
+
+The backend implements multiple security layers:
+
+* JWT authentication
+* Role-based authorization
+* bcrypt password hashing
+* Server-side permission checks
+* Zod request validation
+* Authentication rate limiting
+* Helmet security headers
+* CORS configuration
+* Audit logging
+* Protected API routes
+* Patient/doctor relationship checks
+* Appointment ownership checks
+
+Medical data access is enforced by the backend rather than relying only on frontend navigation.
+
+---
+
+## Technology Stack
+
+### Frontend
+
+* React 18
+* Vite
+* React Router
+* Tailwind CSS
+* Axios
+* Recharts
+* Framer Motion
+* React Hook Form
+* Zod
+* React Hot Toast
+* Lucide React
+* Socket.IO Client
+
+### Backend
+
+* Node.js
+* Express.js
+* Prisma ORM
+* SQLite
+* JWT
+* bcrypt
+* Zod
+* Socket.IO
+* PDFKit
+* Swagger / OpenAPI
+* Helmet
+* Express Rate Limit
+* Node Cron
+
+---
 
 ## Architecture
 
-- `frontend/` - React 18, Vite, React Router, Tailwind CSS, Axios, Recharts.
-- `backend/src/app.js` - Express middleware, CORS, security headers, API docs, and routes.
-- `backend/src/modules/platform.js` - role-aware platform APIs and business rules.
-- `backend/src/modules/patients/` and `backend/src/modules/tests/` - preserved patient-monitoring services and legacy admin routes.
-- `backend/src/utils/availability.js` - clinic timezone slot generation and conflict checks.
-- `backend/prisma/schema.prisma` and `backend/prisma/migrations/` - relational schema and versioned SQLite migrations.
+```text
+                   MRX HealthTECH
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+         React Frontend        REST API
+              │                     │
+       React Router          Express.js Backend
+              │                     │
+       Axios / Socket.IO       Middleware
+                                    │
+                     ┌──────────────┼──────────────┐
+                     │              │              │
+                 JWT Auth       Validation      RBAC
+                     │              │              │
+                     └──────────────┼──────────────┘
+                                    │
+                               Prisma ORM
+                                    │
+                               SQLite DB
+                                    │
+              ┌─────────────────────┼──────────────────┐
+              │                     │                  │
+          Patients               Doctors            Admin
+              │                     │                  │
+        Tests / Reports       Appointments       Users / Audit
+        Prescriptions         Availability       Departments
+```
 
-The browser calls REST APIs under `/api`. Protected calls send `Authorization: Bearer <JWT>`. Medical reads and writes are scoped by the signed-in user's role and care relationship on the server.
+---
 
-## Requirements
+## Project Structure
 
-- Node.js 20.19+ or 22.12+
-- npm
+```text
+MRX-HealthTECH/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── portal/
+│   │   ├── context/
+│   │   ├── api/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── modules/
+│   │   │   ├── patients/
+│   │   │   ├── tests/
+│   │   │   └── platform.js
+│   │   ├── routes/
+│   │   ├── utils/
+│   │   ├── validators/
+│   │   ├── app.js
+│   │   └── server.js
+│   │
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   ├── schema.prisma
+│   │   ├── seed.js
+│   │   └── dev.db
+│   │
+│   ├── API.md
+│   └── package.json
+│
+├── start-backend.cmd
+├── start-frontend.cmd
+└── README.md
+```
 
-## Setup
+---
 
-In a PowerShell terminal:
+## Database Design
+
+The application uses **Prisma ORM with SQLite** and a relational schema containing:
+
+```text
+User
+Patient
+Doctor
+Department
+DoctorAvailability
+Appointment
+Biomarker
+TestResult
+MedicalHistory
+Prescription
+Report
+Review
+FavoriteDoctor
+Notification
+AuditLog
+```
+
+The database includes:
+
+* Foreign-key relationships
+* Cascading relations
+* Unique constraints
+* Indexed queries
+* Doctor license uniqueness
+* Appointment relationships
+* Patient-doctor relationships
+* Notification tracking
+* Audit history
+
+The schema is managed through versioned Prisma migrations.
+
+---
+
+## API
+
+The frontend communicates with the backend through REST APIs under:
+
+```text
+/api
+```
+
+Major API modules include:
+
+```text
+Authentication
+Profiles
+Dashboards
+Doctors
+Doctor Availability
+Appointments
+Patient Records
+Biomarker Results
+Prescriptions
+Medical Reports
+PDF Reports
+Notifications
+Favorites
+Reviews
+Admin Users
+Admin Doctors
+Departments
+Audit Logs
+```
+
+Interactive API documentation is available through Swagger/OpenAPI.
+
+```text
+http://localhost:3001/api-docs
+```
+
+---
+
+## Demo Data
+
+The project includes a database seed containing fictional demonstration data.
+
+The seed includes:
+
+* 1 administrator
+* 8 doctors
+* 10 patients
+* Multiple departments
+* Doctor availability
+* Appointments
+* Biomarker definitions
+* Historical test results
+* Prescriptions
+* Medical reports
+* Reviews
+* Favorite doctors
+* Notifications
+* Audit events
+
+### Demo Login
+
+| Role    | Email                | Password      |
+| ------- | -------------------- | ------------- |
+| Admin   | `admin@mrx.local`    | `MrxDemo123!` |
+| Doctor  | `doctor1@mrx.local`  | `MrxDemo123!` |
+| Patient | `patient1@mrx.local` | `MrxDemo123!` |
+
+Additional seeded doctor and patient accounts are available using the same demo password.
+
+> The seed database contains fictional data only.
+
+---
+
+## Installation
+
+### Requirements
+
+* Node.js 20.19+ or 22.12+
+* npm
+
+### Backend
 
 ```powershell
 cd backend
@@ -43,7 +402,13 @@ npm.cmd install
 Copy-Item .env.example .env
 ```
 
-Set a long random `JWT_SECRET` in `backend/.env`, then prepare the local database:
+Configure a secure JWT secret inside:
+
+```text
+backend/.env
+```
+
+Then run:
 
 ```powershell
 npx.cmd prisma migrate deploy
@@ -51,68 +416,86 @@ npx.cmd prisma generate
 npm.cmd run db:seed
 ```
 
-In another terminal:
+### Frontend
+
+Open another terminal:
 
 ```powershell
 cd frontend
 npm.cmd install
 ```
 
-Use `npm.cmd` in PowerShell if the `npm` PowerShell script is blocked.
+---
 
-## Run locally
+## Run the Application
 
-From the project root, start the two processes in separate terminals:
+From the project root, start the backend:
 
 ```powershell
 .\start-backend.cmd
 ```
 
+Start the frontend in another terminal:
+
 ```powershell
 .\start-frontend.cmd
 ```
 
-Then open [http://localhost:5173](http://localhost:5173). The API health check is [http://localhost:3001/api/health](http://localhost:3001/api/health), and interactive OpenAPI docs are at [http://localhost:3001/api-docs](http://localhost:3001/api-docs).
+Then open:
 
-## Demo accounts
+```text
+http://localhost:5173
+```
 
-The seed creates sample accounts with the same local-only password:
+### Backend
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@mrx.local` | `MrxDemo123!` |
-| Doctor | `doctor1@mrx.local` | `MrxDemo123!` |
-| Patient | `patient1@mrx.local` | `MrxDemo123!` |
+```text
+http://localhost:3001
+```
 
-The login screen offers one-click demo access. Patient accounts can self-register. Doctor self-registration creates a pending profile that an administrator must approve. Password recovery is not connected to outbound email and the recovery page explains the current limitation.
+### API Health
 
-## Database
+```text
+http://localhost:3001/api/health
+```
 
-SQLite development database: `backend/prisma/dev.db`. Schema changes are kept in ordered Prisma migrations. Use:
+### API Documentation
+
+```text
+http://localhost:3001/api-docs
+```
+
+---
+
+## Database Commands
 
 ```powershell
 cd backend
-npx.cmd prisma migrate deploy
+
 npx.cmd prisma migrate status
 npx.cmd prisma studio
 ```
 
-Seed fictional data with `npm.cmd run db:seed` from `backend/`. **The seed clears and recreates all data in the configured database**, so use it only for disposable local demo data. It contains eight fictional doctors, ten patients, appointment examples, biomarkers, test history, prescriptions, reports, reviews, notifications, and audit events.
+To recreate the demo database:
 
-The schema uses Prisma relations, foreign keys, indexes, and uniqueness constraints for accounts, identifiers, reviews, favorites, and doctor license numbers. Appointment slot conflicts are checked in a SQLite transaction; cancelled visits release their times for rebooking. The schema keeps status fields as validated strings to make a later PostgreSQL migration straightforward.
+```powershell
+npm.cmd run db:seed
+```
 
-## API and permissions
+> **Warning:** The seed script clears existing development data before recreating the demo dataset. Do not use it against a database containing information you need to keep.
 
-Full route notes are in [backend/API.md](backend/API.md). Interactive docs are served at `/api-docs`. Main API groups include authentication, role-specific dashboard, doctor discovery and availability, appointments, clinical records, test results, prescriptions, reports/PDF, notifications, and admin user/department/audit endpoints.
+---
 
-Admins manage platform accounts and system data. Doctors can access patients assigned to them and manage their related clinical records. Patients can access only their own records and appointments. The backend enforces these rules independently of frontend navigation.
+## Build & Verification
 
-## Build and verification
+### Frontend Build
 
 ```powershell
 cd frontend
 npm.cmd run build
 ```
+
+### Backend Validation
 
 ```powershell
 cd backend
@@ -120,17 +503,61 @@ npx.cmd prisma validate
 npx.cmd prisma migrate status
 ```
 
-## Screenshots
+---
 
-Add product screenshots here after capturing the local patient, doctor, and admin workspaces.
+## Key Engineering Highlights
 
-## Future improvements
+* Multi-role healthcare architecture
+* RESTful API design
+* Relational database modeling
+* JWT authentication
+* Role-based access control
+* Server-side authorization
+* Doctor approval workflow
+* Appointment scheduling engine
+* Availability and slot conflict handling
+* Biomarker time-series visualization
+* Prescription management
+* Medical report generation
+* PDF generation
+* Real-time communication infrastructure
+* Input validation
+* Rate limiting
+* Security middleware
+* Audit logging
+* Prisma migrations
+* Seeded demo environment
+* Swagger/OpenAPI documentation
+* Modular backend architecture
 
-- Configure secure email-based password recovery and delivery of appointment reminders.
-- Move browser sessions from local storage to secure, same-site cookies and add refresh/revocation support.
-- Add pagination and richer admin editing/report filters.
-- Add external calendar integration, attachment storage, deployment monitoring, and a reviewed security/privacy program.
+---
 
-## Security and privacy notes
+## Future Improvements
 
-Passwords are stored as bcrypt hashes. JWT signing keys must be supplied through environment variables for deployment; production startup rejects the development fallback. API endpoints validate input and enforce role/care relationships. This repository is a local prototype, not a HIPAA or other compliance claim; do not enter real patient information. The development seed deletes existing database rows and should never be pointed at a database with records to keep.
+* Secure email-based password recovery
+* Email/SMS appointment reminders
+* HTTP-only cookie authentication
+* Refresh-token management
+* Advanced pagination and filtering
+* External calendar integration
+* Cloud deployment
+* Secure medical document storage
+* Automated testing
+* Production monitoring
+* Comprehensive security and privacy review
+
+---
+
+## Disclaimer
+
+MRX HealthTECH is a **demonstration healthcare platform** developed for educational and software-development purposes.
+
+It uses fictional/demo data and does not provide medical diagnosis or emergency medical services.
+
+**Do not enter real patient information into this application.**
+
+---
+
+## Built With
+
+**React • Node.js • Express.js • Prisma • SQLite • Tailwind CSS • JWT • Recharts • Socket.IO • Zod • Swagger**
