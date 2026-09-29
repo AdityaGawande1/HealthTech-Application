@@ -86,7 +86,7 @@ export default function PatientList({ onSelectPatient, selectedPatientId, refres
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-gray-900">{patient.name}</p>
-                    <p className="text-sm text-gray-500">ID: {patient.patientId} • Age: {patient.age} • {patient.gender}</p>
+                    <p className="text-sm text-gray-500">ID: {patient.patientId} | Age: {patient.age} | {patient.gender}</p>
                   </div>
                   <button
                     onClick={(e) => {

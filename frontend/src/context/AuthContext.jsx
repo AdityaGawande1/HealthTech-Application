@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (!localStorage.getItem('mrx-token')) { setLoading(false); return; }
-    api.auth.me().then(({ data }) => setUser(data)).catch(() => { localStorage.removeItem('mrx-token'); }).finally(() => setLoading(false));
+    api.auth.me().then(({ data }) => setUser(data)).catch((err) => { if (err.status === 401) localStorage.removeItem('mrx-token'); }).finally(() => setLoading(false));
   }, []);
   const value = useMemo(() => ({ user, loading, signIn: (session) => { localStorage.setItem('mrx-token', session.token); setUser(session.user); }, updateUser: (nextUser) => setUser(nextUser), signOut: () => { localStorage.removeItem('mrx-token'); setUser(null); } }), [user, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

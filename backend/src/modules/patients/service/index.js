@@ -1,4 +1,5 @@
 import prisma from '../../../db.js';
+import { presentTestResult } from '../../tests/service/index.js';
 
 export const patientService = {
   async findAll(search) {
@@ -11,27 +12,31 @@ export const patientService = {
         }
       : {};
 
-    return prisma.patient.findMany({
+    const patients = await prisma.patient.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
         testResults: {
           orderBy: { testDate: 'desc' },
           take: 1,
+          include: { biomarker: true },
         },
       },
     });
+    return patients.map((patient) => ({ ...patient, testResults: patient.testResults.map(presentTestResult) }));
   },
 
   async findById(id) {
-    return prisma.patient.findUnique({
+    const patient = await prisma.patient.findUnique({
       where: { id },
       include: {
         testResults: {
           orderBy: { testDate: 'desc' },
+          include: { biomarker: true },
         },
       },
     });
+    return patient && { ...patient, testResults: patient.testResults.map(presentTestResult) };
   },
 
   async create(data) {

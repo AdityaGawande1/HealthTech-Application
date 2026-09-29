@@ -84,7 +84,7 @@ export default function PatientForm({ initialData, onClose, onSuccess }) {
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 text-xl leading-none"
         >
-          ×
+          x
         </button>
       </div>
 

@@ -70,7 +70,7 @@ export default function TestResultForm({ patientId, onClose, onSuccess }) {
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 text-xl leading-none"
         >
-          ×
+          x
         </button>
       </div>
 

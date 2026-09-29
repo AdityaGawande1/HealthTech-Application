@@ -11,9 +11,18 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+// Turn any server error into one short, readable English sentence.
+const readableError = (error) => {
+  const body = error.response?.data;
+  if (body?.errors?.length && body.errors[0]?.message) return body.errors[0].message;
+  if (body?.message) return body.message;
+  if (!error.response) return 'Cannot reach the server. Please make sure the backend is running and try again.';
+  return 'Something went wrong. Please try again.';
+};
+
 client.interceptors.response.use(
   (response) => response.data,
-  (error) => Promise.reject(new Error(error.response?.data?.message || error.response?.data?.errors?.[0]?.message || error.message || 'Request failed')),
+  (error) => { const friendly = new Error(readableError(error)); friendly.status = error.response?.status; return Promise.reject(friendly); },
 );
 
 export const api = {
@@ -21,12 +30,16 @@ export const api = {
     login: (data) => client.post('/auth/login', data),
     register: (data) => client.post('/auth/register', data),
     me: () => client.get('/auth/me'),
+    logout: () => client.post('/auth/logout'),
   },
   profile: (data) => client.patch('/profile', data),
+  doctorProfile: (data) => client.patch('/doctor/profile', data),
   dashboard: () => client.get('/dashboard'),
   doctors: {
     list: (params) => client.get('/doctors', { params }),
     get: (id) => client.get(`/doctors/${id}`),
+    slots: (id, date) => client.get(`/doctors/${id}/slots`, { params: { date } }),
+    review: (id, data) => client.post(`/doctors/${id}/reviews`, data),
   },
   appointments: {
     list: () => client.get('/appointments'),
@@ -38,11 +51,18 @@ export const api = {
   records: () => client.get('/records'),
   reports: {
     pdf: (id) => client.get(`/reports/${id}/pdf`, { responseType: 'blob' }),
+    publish: (id) => client.patch(`/reports/${id}/publish`),
   },
   availability: (slots) => client.put('/availability', { slots }),
   notifications: {
     list: () => client.get('/notifications'),
     read: (id) => client.patch(`/notifications/${id}/read`),
+    readAll: () => client.patch('/notifications/read-all'),
+  },
+  favorites: {
+    list: () => client.get('/favorites'),
+    add: (doctorId) => client.post(`/favorites/${doctorId}`),
+    remove: (doctorId) => client.delete(`/favorites/${doctorId}`),
   },
   clinical: {
     patients: (search) => client.get('/patients', { params: search ? { search } : {} }),

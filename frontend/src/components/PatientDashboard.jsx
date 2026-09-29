@@ -38,10 +38,10 @@ export default function PatientDashboard({ patient, onBack, onAddTest, onViewRep
         <div className="flex items-center justify-between">
           <div>
             <button onClick={onBack} className="text-gray-500 hover:text-gray-700 text-sm mb-2 inline-flex items-center">
-              ← Back to patients
+              Back to patients
             </button>
             <h1 className="text-2xl font-bold text-gray-900">{patient.name}</h1>
-            <p className="text-gray-500">ID: {patient.patientId} • Age: {patient.age} • {patient.gender}</p>
+            <p className="text-gray-500">ID: {patient.patientId} | Age: {patient.age} | {patient.gender}</p>
           </div>
           <div className="flex gap-3">
             <button onClick={onViewReport} className="btn-secondary">

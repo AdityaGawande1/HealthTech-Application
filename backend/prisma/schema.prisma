@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Roles and workflow states stay strings so PostgreSQL migration needs only a provider change.
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  name          String
+  role          String
+  status        String         @default("ACTIVE")
+  isActive      Boolean        @default(true) @map("is_active")
+  avatarUrl     String?        @map("avatar_url")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  patient       Patient?
+  doctor        Doctor?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  enteredResults TestResult[]  @relation("EnteredResults")
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model Patient {
+  id                    String           @id @default(cuid())
+  patientId             String           @unique @map("patient_id")
+  name                  String
+  age                   Int
+  dateOfBirth           DateTime?        @map("date_of_birth")
+  gender                String
+  bloodGroup            String?          @map("blood_group")
+  phone                 String?
+  allergies             String?
+  emergencyContact      String?          @map("emergency_contact")
+  medicalHistory        String?          @map("medical_history")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @default(now()) @updatedAt @map("updated_at")
+  userId                String?          @unique @map("user_id")
+  doctorId              String?          @map("doctor_id")
+  user                  User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  doctor                Doctor?          @relation("DoctorPatients", fields: [doctorId], references: [id], onDelete: SetNull)
+  testResults           TestResult[]
+  appointments          Appointment[]
+  medicalHistoryEntries MedicalHistory[]
+  prescriptions         Prescription[]
+  reports               Report[]
+  reviews               Review[]
+  favorites             FavoriteDoctor[]
+
+  @@index([doctorId])
+  @@map("patients")
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  doctors   Doctor[]
+
+  @@map("departments")
+}
+
+model Doctor {
+  id                    String               @id @default(cuid())
+  userId                String               @unique @map("user_id")
+  departmentId          String?              @map("department_id")
+  specialization        String
+  qualifications        String               @default("")
+  licenseNumber         String?              @unique @map("license_number")
+  experienceYears       Int                  @default(0) @map("experience_years")
+  languages             String               @default("English")
+  clinicName            String?              @map("clinic_name")
+  city                  String?
+  location              String?
+  timezone              String               @default("Asia/Kolkata")
+  consultationFee       Float                @default(0) @map("consultation_fee")
+  bio                   String?
+  gender                String               @default("Other")
+  ratingAvg             Float                @default(0) @map("rating_avg")
+  status                String               @default("PENDING")
+  approved              Boolean              @default(false)
+  active                Boolean              @default(true)
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department            Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  patients              Patient[]            @relation("DoctorPatients")
+  appointments          Appointment[]
+  testResults           TestResult[]
+  prescriptions         Prescription[]
+  reports               Report[]
+  availability          DoctorAvailability[]
+  medicalHistoryEntries MedicalHistory[]
+  reviews               Review[]
+  favorites             FavoriteDoctor[]
+
+  @@index([specialization, approved, active])
+  @@index([city, consultationFee])
+  @@map("doctors")
+}
+
+model DoctorAvailability {
+  id          String  @id @default(cuid())
+  doctorId    String  @map("doctor_id")
+  dayOfWeek   Int     @map("day_of_week")
+  startTime   String  @map("start_time")
+  endTime     String  @map("end_time")
+  slotMinutes Int     @default(30) @map("slot_minutes")
+  active      Boolean @default(true)
+  doctor      Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, dayOfWeek, startTime])
+  @@map("doctor_availability")
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  patientId   String   @map("patient_id")
+  doctorId    String   @map("doctor_id")
+  startAt     DateTime @map("start_at")
+  endAt       DateTime @map("end_at")
+  reason      String?
+  status      String   @default("PENDING")
+  cancelledBy String?  @map("cancelled_by")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  review      Review?
+
+  @@index([patientId, startAt])
+  @@index([doctorId, startAt, status])
+  @@map("appointments")
+}
+
+model Biomarker {
+  id           String       @id @default(cuid())
+  name         String       @unique
+  unit         String
+  referenceMin Float?       @map("reference_min")
+  referenceMax Float?       @map("reference_max")
+  category     String
+  testResults  TestResult[]
+
+  @@index([category, name])
+  @@map("biomarkers")
+}
+
+model TestResult {
+  id            Int       @id @default(autoincrement())
+  patientId     String    @map("patient_id")
+  biomarkerId   String    @map("biomarker_id")
+  value         Float
+  unit          String
+  testDate      DateTime  @map("test_date")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  doctorId      String?   @map("doctor_id")
+  enteredById   String?   @map("entered_by_id")
+  source        String    @default("LAB")
+  remarks       String?
+  notes         String?
+  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  biomarker     Biomarker @relation(fields: [biomarkerId], references: [id], onDelete: Restrict)
+  doctor        Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  enteredBy     User?     @relation("EnteredResults", fields: [enteredById], references: [id], onDelete: SetNull)
+
+  @@index([patientId, testDate])
+  @@index([biomarkerId, testDate])
+  @@map("test_results")
+}
+
+model MedicalHistory {
+  id         String    @id @default(cuid())
+  patientId  String    @map("patient_id")
+  doctorId   String?   @map("doctor_id")
+  title      String
+  details    String
+  occurredAt DateTime? @map("occurred_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  patient    Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor     Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, occurredAt])
+  @@map("medical_history")
+}
+
+model Prescription {
+  id           String    @id @default(cuid())
+  patientId    String    @map("patient_id")
+  doctorId     String    @map("doctor_id")
+  medication   String
+  dosage       String
+  frequency    String
+  instructions String?
+  startDate    DateTime  @default(now()) @map("start_date")
+  endDate      DateTime? @map("end_date")
+  status       String    @default("ACTIVE")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  patient      Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor       Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, status])
+  @@map("prescriptions")
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  patientId   String    @map("patient_id")
+  doctorId    String    @map("doctor_id")
+  title       String
+  summary     String
+  content     String?
+  doctorNotes String?   @map("doctor_notes")
+  status      String    @default("DRAFT")
+  publishedAt DateTime? @map("published_at")
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, status, createdAt])
+  @@index([patientId, published, createdAt])
+  @@map("reports")
+}
+
+model Review {
+  id            String      @id @default(cuid())
+  doctorId      String      @map("doctor_id")
+  patientId     String      @map("patient_id")
+  appointmentId String      @unique @map("appointment_id")
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  doctor        Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, createdAt])
+  @@map("reviews")
+}
+
+model FavoriteDoctor {
+  id        String   @id @default(cuid())
+  patientId String   @map("patient_id")
+  doctorId  String   @map("doctor_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, doctorId])
+  @@index([doctorId])
+  @@map("favorite_doctors")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String    @default("GENERAL")
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean   @default(false) @map("is_read")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  before     String?
+  after      String?
+  details    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
