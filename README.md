@@ -554,8 +554,6 @@ MRX HealthTECH is a **demonstration healthcare platform** developed for educatio
 
 It uses fictional/demo data and does not provide medical diagnosis or emergency medical services.
 
-**Do not enter real patient information into this application.**
-
 ---
 
 ## Built With
