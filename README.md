@@ -1,6 +1,6 @@
-# MRX HealthTECH
+# HealthTECH Application
 
-**MRX HealthTECH** is a full-stack healthcare management platform designed to connect **patients, doctors, and administrators** through dedicated role-based workspaces.
+** HealthTECH** is a full-stack healthcare management platform designed to connect **patients, doctors, and administrators** through dedicated role-based workspaces.
 
 The platform combines **doctor discovery, appointment management, patient monitoring, biomarker trends, prescriptions, medical reports, notifications, reviews, favorites, and administrative controls** into a single web application.
 
@@ -198,7 +198,7 @@ Medical data access is enforced by the backend rather than relying only on front
 ## Architecture
 
 ```text
-                   MRX HealthTECH
+                    HealthTECH
                          │
               ┌──────────┴──────────┐
               │                     │
@@ -231,7 +231,7 @@ Medical data access is enforced by the backend rather than relying only on front
 ## Project Structure
 
 ```text
-MRX-HealthTECH/
+HealthTECH/
 │
 ├── frontend/
 │   ├── src/
@@ -550,7 +550,7 @@ npx.cmd prisma migrate status
 
 ## Disclaimer
 
-MRX HealthTECH is a **demonstration healthcare platform** developed for educational and software-development purposes.
+ HealthTECH is a **demonstration healthcare platform** developed for educational and software-development purposes.
 
 It uses fictional/demo data and does not provide medical diagnosis or emergency medical services.
 
